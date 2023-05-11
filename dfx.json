@@ -1,0 +1,29 @@
+{
+  "canisters": {
+    "pedidos_backend": {
+      "main": "src/pedidos_backend/main.mo",
+      "type": "motoko"
+    },
+    "pedidos_frontend": {
+      "dependencies": [
+        "pedidos_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/pedidos_frontend/src/index.html"
+      },
+      "source": [
+        "src/pedidos_frontend/assets",
+        "dist/pedidos_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
