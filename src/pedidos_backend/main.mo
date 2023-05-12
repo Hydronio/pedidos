@@ -3,40 +3,68 @@ import List "mo:base/List";
 import Map "mo:base/HashMap";
 import Hash "mo:base/Hash";
 import Nat "mo:base/Nat";
+import Principal "mo:base/Principal";
 
 actor JustEat {
 
-  //stable var contadorProductos: Nat = 0;
+  stable var contadorProductos: Nat = 0;
+  type Id = Text;
 
   public type Pedido = {
-    hora: Text;
     descripcion: [Producto];
     puntoDeEntrega: Text;
   };
 
   type Producto = {
     id: Nat;
-    vendendor: Text;
+    vendedor: Text;
     descripcion: Text;
   };
 
-  let PedidoCliente = Map.HashMap<actor, Pedido>(0, princ.equal, Text.hash);
-  let Productos = Map.HashMap<Text, Producto>(0, Text.equal, Text.hash);
+  var pedidoCliente = Map.HashMap<Principal, Pedido>(0, Principal.equal, Principal.hash);
+  var productos = Map.HashMap<Id, Producto>(0, Text.equal, Text.hash);
 
-  var listaProductos = List.nil<Producto>();
+
 
 
   //añadimos un nuevo producto
-  public func crearProducto(producto : Producto): async () {
-    //producto.id := 1;
-    Productos.put(Nat.toText(contadorProductos), producto);
-    listaProductos := List.push<Producto>(producto, listaProductos);
-    //contadorProductos += 1;
-  };
+  public shared func agregarProducto(productoVendedor: Text, productoDescripcion: Text): async () {
+    var miProducto: Producto = {
+      id = contadorProductos;
+      vendedor = productoVendedor; 
+      descripcion = productoDescripcion
+    };
 
-  //consultar prudcto por su id en el hashmap Productos
+    productos.put(Nat.toText(contadorProductos), miProducto);
+
+    contadorProductos += 1;
+  }; 
+
+  //consultar producto por su id en el hashmap Productos
   public query func consultarProducto(id : Text) : async ?Producto {
-    Productos.get(id)
+    productos.get(id)
   };
 
+  //crear un pedido y asignarlo a un cliente
+  public shared(msg) func crearPedido(
+    productosPedido: [Producto],
+    puntoDeEntrega: Text) : async (){
+
+      var miPedido : Pedido = {
+        descripcion = productosPedido;
+        puntoDeEntrega = puntoDeEntrega;
+      };
+    
+    pedidoCliente.put(msg.caller, miPedido);
+  };
+
+  //consultar pedido cliente
+  public query func consultarPedidoCliente(cliente : Principal) : async ?Pedido {
+    pedidoCliente.get(cliente)
+  };
+
+  //eliminamos la entrada en el mapping
+  public func entregarPedido(cliente: Principal): async() {
+    pedidoCliente.delete(cliente);
+  }
 }
